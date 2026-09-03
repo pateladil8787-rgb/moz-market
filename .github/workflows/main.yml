@@ -1,0 +1,39 @@
+name: Build MOZ MARKET APK
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Unzip project
+        run: |
+          unzip -o moz_market_ready.zip -d project
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+
+      - name: Create Android project
+        working-directory: project/moz_market_ready
+        run: |
+          flutter create --platforms=android .
+          cp main.dart lib/main.dart
+
+      - name: Build APK
+        working-directory: project/moz_market_ready
+        run: |
+          flutter pub get
+          flutter build apk --release
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: moz-market-apk
+          path: project/moz_market_ready/build/app/outputs/flutter-apk/app-release.apk
