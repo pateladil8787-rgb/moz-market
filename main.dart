@@ -199,7 +199,7 @@ class _MainScreenState extends State<MainScreen> {
     String category='Clothes', condition='Used - Good', location='Maputo';
     List<XFile> photos=[];
     await showModalBottomSheet(context:context,isScrollControlled:true,useSafeArea:true,showDragHandle:true,
-      builder:(ctx)=>StatefulBuilder(builder:(ctx,setM)=>{
+      builder:(ctx)=>StatefulBuilder(builder:(ctx,setM){
         Future<void> gallery() async { final p=await ImagePicker().pickMultiImage(imageQuality:82); if(p.isNotEmpty)setM(()=>photos=[...photos,...p].take(10).toList()); }
         Future<void> camera() async { final p=await ImagePicker().pickImage(source:ImageSource.camera,imageQuality:82); if(p!=null)setM(()=>photos=[...photos,p].take(10).toList()); }
         return Padding(padding:EdgeInsets.fromLTRB(18,5,18,MediaQuery.of(ctx).viewInsets.bottom+16),
@@ -233,7 +233,7 @@ class _MainScreenState extends State<MainScreen> {
             SizedBox(width:double.infinity,child:FilledButton(
               onPressed:()=>_publish(ctx,title,price,desc,phone,category,condition,location,photos),
               child:const Text('Publish Ad / Publicar'))),
-          ])));
+          ]));
       }));
   }
 
