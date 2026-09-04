@@ -233,7 +233,7 @@ class _MainScreenState extends State<MainScreen> {
             SizedBox(width:double.infinity,child:FilledButton(
               onPressed:()=>_publish(ctx,title,price,desc,phone,category,condition,location,photos),
               child:const Text('Publish Ad / Publicar'))),
-          ]));
+          ])));
       }));
   }
 
@@ -259,7 +259,7 @@ class _MainScreenState extends State<MainScreen> {
         Expanded(child:FilledButton.icon(onPressed:()=>_whatsapp(ad),icon:const Icon(Icons.chat),label:const Text('WhatsApp'))),
         const SizedBox(width:10),Expanded(child:OutlinedButton.icon(onPressed:()=>_demoChat(),icon:const Icon(Icons.chat_bubble_outline),label:const Text('Chat'))),
       ]),
-    ]));
+    ])));
 
   Future<void> _whatsapp(Ad ad) async {
     final n=ad.whatsapp.replaceAll(RegExp(r'[^0-9]'),'');
