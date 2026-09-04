@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "933199096217",
+    "project_id": "moz-market-b2c50",
+    "storage_bucket": "moz-market-b2c50.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:933199096217:android:1e62ae55af50bbb0c68b08",
+        "android_client_info": {
+          "package_name": "com.mozmarket.app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyC7zAK_ySU6zDX-QycAuRG_qvsoOWa-LU8"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
