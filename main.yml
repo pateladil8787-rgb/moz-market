@@ -130,9 +130,7 @@ jobs:
           """
 
           if old not in s:
-              raise SystemExit(
-                  "ERROR: Original main() block was not found."
-              )
+              raise SystemExit("ERROR: Original main() block was not found.")
 
           s = s.replace(old, new, 1)
 
@@ -216,9 +214,7 @@ jobs:
           """
 
           if marker not in s:
-              raise SystemExit(
-                  "ERROR: MozMarketApp class was not found."
-              )
+              raise SystemExit("ERROR: MozMarketApp class was not found.")
 
           if "class StartupErrorScreen" not in s:
               s = s.replace(
