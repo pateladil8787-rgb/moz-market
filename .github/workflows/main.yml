@@ -20,6 +20,211 @@ jobs:
         run: |
           flutter create --platforms=android .
           cp main.dart lib/main.dart
+          cp google-services.json android/app/google-services.json
+
+      - name: Configure Android Package
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+
+          p = Path("android/app/build.gradle.kts")
+          s = p.read_text()
+
+          s = s.replace(
+              'namespace = "com.example.moz_market"',
+              'namespace = "com.mozmarket.app"'
+          )
+
+          s = s.replace(
+              'applicationId = "com.example.moz_market"',
+              'applicationId = "com.mozmarket.app"'
+          )
+
+          p.write_text(s)
+          PY
+
+      - name: Configure Google Services
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+
+          p = Path("android/settings.gradle.kts")
+          s = p.read_text()
+
+          if 'com.google.gms.google-services' not in s:
+              s = s.replace(
+                  'plugins {',
+                  'plugins {\n    id("com.google.gms.google-services") version "4.4.2" apply false',
+                  1
+              )
+
+          p.write_text(s)
+
+          p = Path("android/app/build.gradle.kts")
+          s = p.read_text()
+
+          if 'id("com.google.gms.google-services")' not in s:
+              s = s.replace(
+                  'plugins {',
+                  'plugins {\n    id("com.google.gms.google-services")',
+                  1
+              )
+
+          p.write_text(s)
+          PY
+
+      - name: Fix Firebase Startup
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+
+          p = Path("lib/main.dart")
+          s = p.read_text()
+
+          old = """Future<void> main() async {
+            WidgetsFlutterBinding.ensureInitialized();
+
+            await Firebase.initializeApp();
+
+            if (FirebaseAuth.instance.currentUser == null) {
+              await FirebaseAuth.instance.signInAnonymously();
+            }
+
+            runApp(const MozMarketApp());
+          }
+          """
+
+          new = """Future<void> main() async {
+            WidgetsFlutterBinding.ensureInitialized();
+
+            String? firebaseStartupError;
+
+            try {
+              await Firebase.initializeApp(
+                options: const FirebaseOptions(
+                  apiKey: 'AIzaSyC7zAK_ySU6zDX-QycAuRG_qvsoOWa-LU8',
+                  appId: '1:933199096217:android:1e62ae55af50bbb0c68b08',
+                  messagingSenderId: '933199096217',
+                  projectId: 'moz-market-b2c50',
+                  storageBucket: 'moz-market-b2c50.firebasestorage.app',
+                ),
+              );
+
+              if (FirebaseAuth.instance.currentUser == null) {
+                await FirebaseAuth.instance.signInAnonymously();
+              }
+            } catch (e) {
+              firebaseStartupError = e.toString();
+            }
+
+            if (firebaseStartupError != null) {
+              runApp(
+                StartupErrorScreen(
+                  error: firebaseStartupError!,
+                ),
+              );
+            } else {
+              runApp(const MozMarketApp());
+            }
+          }
+          """
+
+          if old not in s:
+              raise SystemExit("ERROR: Original main() block was not found.")
+
+          s = s.replace(old, new, 1)
+
+          marker = "class MozMarketApp extends StatelessWidget {"
+
+          startup_class = """class StartupErrorScreen extends StatelessWidget {
+            final String error;
+
+            const StartupErrorScreen({
+              super.key,
+              required this.error,
+            });
+
+            @override
+            Widget build(BuildContext context) {
+              return MaterialApp(
+                debugShowCheckedModeBanner: false,
+                home: Scaffold(
+                  backgroundColor: const Color(0xFFF7F8F5),
+                  appBar: AppBar(
+                    title: const Text('MOZ MARKET'),
+                  ),
+                  body: SafeArea(
+                    child: Padding(
+                      padding: const EdgeInsets.all(24),
+                      child: SingleChildScrollView(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Icon(
+                              Icons.error_outline,
+                              color: Colors.red,
+                              size: 60,
+                            ),
+                            const SizedBox(height: 18),
+                            const Text(
+                              'Firebase startup error',
+                              style: TextStyle(
+                                fontSize: 24,
+                                fontWeight: FontWeight.w900,
+                              ),
+                            ),
+                            const SizedBox(height: 12),
+                            const Text(
+                              'MOZ MARKET could not connect to Firebase.',
+                              style: TextStyle(fontSize: 16),
+                            ),
+                            const SizedBox(height: 8),
+                            const Text(
+                              'Exact error:',
+                              style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            const SizedBox(height: 12),
+                            Container(
+                              width: double.infinity,
+                              padding: const EdgeInsets.all(16),
+                              decoration: BoxDecoration(
+                                color: Colors.white,
+                                borderRadius: BorderRadius.circular(16),
+                              ),
+                              child: SelectableText(
+                                error,
+                                style: const TextStyle(
+                                  fontSize: 14,
+                                  color: Colors.red,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              );
+            }
+          }
+
+          """
+
+          if marker not in s:
+              raise SystemExit("ERROR: MozMarketApp class was not found.")
+
+          if "class StartupErrorScreen" not in s:
+              s = s.replace(
+                  marker,
+                  startup_class + marker,
+                  1
+              )
+
+          p.write_text(s)
+          PY
 
       - name: Build APK
         run: |
@@ -29,5 +234,5 @@ jobs:
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
-          name: moz-market-v3-apk
+          name: moz-market-v4-debug-apk
           path: build/app/outputs/flutter-apk/app-release.apk
