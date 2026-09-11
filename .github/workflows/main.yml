@@ -41,6 +41,30 @@ jobs:
           )
 
           p.write_text(s)
+
+          old = Path(
+              "android/app/src/main/kotlin/com/example/moz_market/MainActivity.kt"
+          )
+
+          new_dir = Path(
+              "android/app/src/main/kotlin/com/mozmarket/app"
+          )
+
+          new_dir.mkdir(parents=True, exist_ok=True)
+
+          new = new_dir / "MainActivity.kt"
+
+          if old.exists():
+              activity = old.read_text()
+
+              activity = activity.replace(
+                  "package com.example.moz_market",
+                  "package com.mozmarket.app"
+              )
+
+              new.write_text(activity)
+              old.unlink()
+
           PY
 
       - name: Configure Google Services
@@ -71,6 +95,7 @@ jobs:
               )
 
           p.write_text(s)
+
           PY
 
       - name: Fix Firebase Startup
@@ -224,6 +249,7 @@ jobs:
               )
 
           p.write_text(s)
+
           PY
 
       - name: Build APK
@@ -234,5 +260,5 @@ jobs:
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
-          name: moz-market-v4-debug-apk
+          name: moz-market-release-apk
           path: build/app/outputs/flutter-apk/app-release.apk
