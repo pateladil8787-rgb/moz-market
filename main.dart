@@ -1,15 +1,30 @@
 import 'dart:io';
+
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-void main() => runApp(const MozMarketApp());
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+
+  await Firebase.initializeApp();
+
+  if (FirebaseAuth.instance.currentUser == null) {
+    await FirebaseAuth.instance.signInAnonymously();
+  }
+
+  runApp(const MozMarketApp());
+}
 
 const green = Color(0xFF0B7A45);
 const dark = Color(0xFF101512);
 const bg = Color(0xFFF7F8F5);
 
 class Ad {
+  String id;
   String title;
   String price;
   String location;
@@ -17,10 +32,12 @@ class Ad {
   String condition;
   String description;
   String whatsapp;
+  String sellerId;
   List<XFile> photos;
   bool favourite;
 
   Ad({
+    required this.id,
     required this.title,
     required this.price,
     required this.location,
@@ -28,16 +45,24 @@ class Ad {
     required this.condition,
     required this.description,
     required this.whatsapp,
+    required this.sellerId,
     required this.photos,
     this.favourite = false,
   });
 }
 
 class ChatMessage {
+  final String id;
   final String text;
-  final bool mine;
+  final String senderId;
+  final Timestamp? timestamp;
 
-  ChatMessage(this.text, this.mine);
+  ChatMessage({
+    required this.id,
+    required this.text,
+    required this.senderId,
+    this.timestamp,
+  });
 }
 
 class MozMarketApp extends StatelessWidget {
@@ -60,7 +85,9 @@ class MozMarketApp extends StatelessWidget {
           filled: true,
           fillColor: Colors.white,
           border: OutlineInputBorder(
-            borderRadius: BorderRadius.all(Radius.circular(14)),
+            borderRadius: BorderRadius.all(
+              Radius.circular(14),
+            ),
             borderSide: BorderSide.none,
           ),
         ),
@@ -83,6 +110,7 @@ class _MainScreenState extends State<MainScreen> {
 
   final List<Ad> ads = [
     Ad(
+      id: 'iphone_demo',
       title: 'iPhone 14 Pro Max',
       price: '25,000 MZN',
       location: 'Maputo',
@@ -90,9 +118,11 @@ class _MainScreenState extends State<MainScreen> {
       condition: 'Used - Like New',
       description: 'Excellent condition. Ready to use.',
       whatsapp: '258820000000',
+      sellerId: 'demo_seller_1',
       photos: [],
     ),
     Ad(
+      id: 'shirt_demo',
       title: 'Men T-Shirt',
       price: '500 MZN',
       location: 'Matola',
@@ -100,9 +130,11 @@ class _MainScreenState extends State<MainScreen> {
       condition: 'New',
       description: 'Good quality.',
       whatsapp: '258820000000',
+      sellerId: 'demo_seller_1',
       photos: [],
     ),
     Ad(
+      id: 'dell_demo',
       title: 'Dell Laptop',
       price: '30,000 MZN',
       location: 'Maputo',
@@ -110,6 +142,7 @@ class _MainScreenState extends State<MainScreen> {
       condition: 'Used - Good',
       description: 'Works perfectly.',
       whatsapp: '258820000000',
+      sellerId: 'demo_seller_1',
       photos: [],
     ),
   ];
@@ -130,10 +163,9 @@ class _MainScreenState extends State<MainScreen> {
     ['Other', '📦'],
   ];
 
-  final List<ChatMessage> messages = [
-    ChatMessage('Olá! Tenho interesse neste produto.', false),
-    ChatMessage('Olá! Sim, ainda está disponível.', true),
-  ];
+  String get myUserId {
+    return FirebaseAuth.instance.currentUser?.uid ?? '';
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -145,7 +177,9 @@ class _MainScreenState extends State<MainScreen> {
     ];
 
     return Scaffold(
-      body: SafeArea(child: pages[tab]),
+      body: SafeArea(
+        child: pages[tab],
+      ),
       floatingActionButton: tab == 0
           ? FloatingActionButton.extended(
               backgroundColor: green,
@@ -158,7 +192,9 @@ class _MainScreenState extends State<MainScreen> {
       bottomNavigationBar: NavigationBar(
         selectedIndex: tab,
         onDestinationSelected: (i) {
-          setState(() => tab = i);
+          setState(() {
+            tab = i;
+          });
         },
         destinations: const [
           NavigationDestination(
@@ -202,10 +238,14 @@ class _MainScreenState extends State<MainScreen> {
         IconButton(
           onPressed: () {
             ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('No new notifications.')),
+              const SnackBar(
+                content: Text('No new notifications.'),
+              ),
             );
           },
-          icon: const Icon(Icons.notifications_none_rounded),
+          icon: const Icon(
+            Icons.notifications_none_rounded,
+          ),
         ),
       ],
     );
@@ -214,18 +254,32 @@ class _MainScreenState extends State<MainScreen> {
   Widget _home() {
     final filtered = ads.where((ad) {
       if (query.isEmpty) return true;
+
       final text =
-          '${ad.title} ${ad.category} ${ad.location}'.toLowerCase();
-      return text.contains(query.toLowerCase());
+          '${ad.title} ${ad.category} ${ad.location}'
+              .toLowerCase();
+
+      return text.contains(
+        query.toLowerCase(),
+      );
     }).toList();
 
     return ListView(
-      padding: const EdgeInsets.fromLTRB(18, 10, 18, 100),
+      padding: const EdgeInsets.fromLTRB(
+        18,
+        10,
+        18,
+        100,
+      ),
       children: [
         _header(),
         const SizedBox(height: 16),
         TextField(
-          onChanged: (value) => setState(() => query = value),
+          onChanged: (value) {
+            setState(() {
+              query = value;
+            });
+          },
           decoration: const InputDecoration(
             hintText: 'Search / Procurar...',
             prefixIcon: Icon(Icons.search),
@@ -239,7 +293,8 @@ class _MainScreenState extends State<MainScreen> {
             borderRadius: BorderRadius.circular(24),
           ),
           child: const Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+            crossAxisAlignment:
+                CrossAxisAlignment.start,
             children: [
               Text(
                 'Buy & Sell Anything',
@@ -283,7 +338,8 @@ class _MainScreenState extends State<MainScreen> {
           child: ListView.separated(
             scrollDirection: Axis.horizontal,
             itemCount: categories.length,
-            separatorBuilder: (_, __) => const SizedBox(width: 10),
+            separatorBuilder: (_, __) =>
+                const SizedBox(width: 10),
             itemBuilder: (_, i) {
               return _categoryTile(
                 categories[i][0],
@@ -315,30 +371,43 @@ class _MainScreenState extends State<MainScreen> {
     );
   }
 
-  Widget _categoryTile(String name, String emoji) {
+  Widget _categoryTile(
+    String name,
+    String emoji,
+  ) {
     return GestureDetector(
-      onTap: () => setState(() => query = name),
+      onTap: () {
+        setState(() {
+          query = name;
+        });
+      },
       child: Container(
         width: 92,
         padding: const EdgeInsets.all(9),
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: Colors.black12),
+          border: Border.all(
+            color: Colors.black12,
+          ),
         ),
         child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
+          mainAxisAlignment:
+              MainAxisAlignment.center,
           children: [
             Text(
               emoji,
-              style: const TextStyle(fontSize: 27),
+              style: const TextStyle(
+                fontSize: 27,
+              ),
             ),
             const SizedBox(height: 5),
             Text(
               name,
               textAlign: TextAlign.center,
               maxLines: 2,
-              overflow: TextOverflow.ellipsis,
+              overflow:
+                  TextOverflow.ellipsis,
               style: const TextStyle(
                 fontSize: 11,
                 fontWeight: FontWeight.w700,
@@ -352,11 +421,15 @@ class _MainScreenState extends State<MainScreen> {
 
   Widget _card(Ad ad) {
     return Card(
-      margin: const EdgeInsets.only(bottom: 12),
+      margin: const EdgeInsets.only(
+        bottom: 12,
+      ),
       elevation: 0,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(18),
-        side: const BorderSide(color: Colors.black12),
+        side: const BorderSide(
+          color: Colors.black12,
+        ),
       ),
       child: InkWell(
         borderRadius: BorderRadius.circular(18),
@@ -369,14 +442,17 @@ class _MainScreenState extends State<MainScreen> {
               const SizedBox(width: 12),
               Expanded(
                 child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+                  crossAxisAlignment:
+                      CrossAxisAlignment.start,
                   children: [
                     Text(
                       ad.title,
                       maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
+                      overflow:
+                          TextOverflow.ellipsis,
                       style: const TextStyle(
-                        fontWeight: FontWeight.w800,
+                        fontWeight:
+                            FontWeight.w800,
                         fontSize: 16,
                       ),
                     ),
@@ -384,7 +460,8 @@ class _MainScreenState extends State<MainScreen> {
                     Text(
                       ad.price,
                       style: const TextStyle(
-                        fontWeight: FontWeight.w900,
+                        fontWeight:
+                            FontWeight.w900,
                         color: green,
                         fontSize: 15,
                       ),
@@ -393,7 +470,8 @@ class _MainScreenState extends State<MainScreen> {
                     Text(
                       '${ad.location} • ${ad.category}',
                       maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
+                      overflow:
+                          TextOverflow.ellipsis,
                       style: const TextStyle(
                         color: Colors.black54,
                         fontSize: 12,
@@ -405,7 +483,8 @@ class _MainScreenState extends State<MainScreen> {
               IconButton(
                 onPressed: () {
                   setState(() {
-                    ad.favourite = !ad.favourite;
+                    ad.favourite =
+                        !ad.favourite;
                   });
                 },
                 icon: Icon(
@@ -426,7 +505,8 @@ class _MainScreenState extends State<MainScreen> {
 
   Widget _thumb(Ad ad) {
     return ClipRRect(
-      borderRadius: BorderRadius.circular(14),
+      borderRadius:
+          BorderRadius.circular(14),
       child: ad.photos.isNotEmpty
           ? Image.file(
               File(ad.photos.first.path),
@@ -437,7 +517,8 @@ class _MainScreenState extends State<MainScreen> {
           : Container(
               width: 78,
               height: 78,
-              color: const Color(0xFFE9ECE7),
+              color:
+                  const Color(0xFFE9ECE7),
               child: const Icon(
                 Icons.image_outlined,
                 size: 30,
@@ -447,10 +528,19 @@ class _MainScreenState extends State<MainScreen> {
   }
 
   Widget _myAds() {
-    final myAds = ads.length > 3 ? ads.sublist(3) : <Ad>[];
+    final myAds = ads
+        .where(
+          (ad) => ad.sellerId == myUserId,
+        )
+        .toList();
 
     return ListView(
-      padding: const EdgeInsets.fromLTRB(18, 18, 18, 30),
+      padding: const EdgeInsets.fromLTRB(
+        18,
+        18,
+        18,
+        30,
+      ),
       children: [
         const Text(
           'My Ads',
@@ -460,13 +550,19 @@ class _MainScreenState extends State<MainScreen> {
           ),
         ),
         const SizedBox(height: 8),
-        const Text('Os seus anúncios publicados'),
+        const Text(
+          'Os seus anúncios publicados',
+        ),
         const SizedBox(height: 18),
-        if (myAds.isNotEmpty) ...myAds.map(_card),
+        if (myAds.isNotEmpty)
+          ...myAds.map(_card),
         if (myAds.isEmpty)
           Center(
             child: Padding(
-              padding: const EdgeInsets.only(top: 80),
+              padding:
+                  const EdgeInsets.only(
+                top: 80,
+              ),
               child: Column(
                 children: [
                   const Icon(
@@ -481,7 +577,9 @@ class _MainScreenState extends State<MainScreen> {
                   const SizedBox(height: 12),
                   FilledButton.icon(
                     onPressed: _postAd,
-                    icon: const Icon(Icons.add),
+                    icon: const Icon(
+                      Icons.add,
+                    ),
                     label: const Text(
                       'Post your first ad',
                     ),
@@ -495,40 +593,178 @@ class _MainScreenState extends State<MainScreen> {
   }
 
   Widget _chatList() {
+    final uid = myUserId;
+
+    return StreamBuilder<
+        QuerySnapshot<Map<String, dynamic>>>(
+      stream: FirebaseFirestore.instance
+          .collection('chats')
+          .where(
+            'members',
+            arrayContains: uid,
+          )
+          .orderBy(
+            'lastMessageTime',
+            descending: true,
+          )
+          .snapshots(),
+      builder: (context, snapshot) {
+        if (snapshot.hasError) {
+          return _chatError();
+        }
+
+        if (snapshot.connectionState ==
+            ConnectionState.waiting) {
+          return const Center(
+            child: CircularProgressIndicator(),
+          );
+        }
+
+        final docs = snapshot.data?.docs ?? [];
+
+        return ListView(
+          padding: const EdgeInsets.all(18),
+          children: [
+            const Text(
+              'Chat',
+              style: TextStyle(
+                fontSize: 25,
+                fontWeight: FontWeight.w900,
+              ),
+            ),
+            const SizedBox(height: 18),
+            if (docs.isEmpty)
+              const Padding(
+                padding:
+                    EdgeInsets.only(top: 100),
+                child: Center(
+                  child: Column(
+                    children: [
+                      Icon(
+                        Icons.chat_bubble_outline,
+                        size: 60,
+                        color: Colors.black38,
+                      ),
+                      SizedBox(height: 12),
+                      Text(
+                        'No chats yet.',
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight:
+                              FontWeight.w700,
+                        ),
+                      ),
+                      SizedBox(height: 5),
+                      Text(
+                        'Open an ad and tap Chat.',
+                        textAlign:
+                            TextAlign.center,
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ...docs.map(
+              (doc) => _chatTile(
+                doc.id,
+                doc.data(),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Widget _chatError() {
     return ListView(
       padding: const EdgeInsets.all(18),
-      children: [
-        const Text(
+      children: const [
+        Text(
           'Chat',
           style: TextStyle(
             fontSize: 25,
             fontWeight: FontWeight.w900,
           ),
         ),
-        const SizedBox(height: 18),
-        Card(
-          elevation: 0,
-          child: ListTile(
-            leading: const CircleAvatar(
-              backgroundColor: green,
-              child: Icon(
-                Icons.person,
-                color: Colors.white,
-              ),
-            ),
-            title: const Text('Seller chat'),
-            subtitle: const Text(
-              'Olá! Sim, ainda está disponível.',
-            ),
-            trailing: const Icon(Icons.chevron_right),
-            onTap: () => _openChat('Seller chat'),
+        SizedBox(height: 30),
+        Icon(
+          Icons.cloud_off,
+          size: 55,
+          color: Colors.black38,
+        ),
+        SizedBox(height: 12),
+        Center(
+          child: Text(
+            'Chat database setup is required.',
+            textAlign: TextAlign.center,
           ),
         ),
       ],
     );
   }
 
+  Widget _chatTile(
+    String chatId,
+    Map<String, dynamic> data,
+  ) {
+    final otherName =
+        data['otherName']?.toString() ??
+            'MOZ MARKET User';
+
+    final adTitle =
+        data['adTitle']?.toString() ?? '';
+
+    final lastMessage =
+        data['lastMessage']?.toString() ??
+            'Start chatting';
+
+    return Card(
+      elevation: 0,
+      child: ListTile(
+        leading: const CircleAvatar(
+          backgroundColor: green,
+          child: Icon(
+            Icons.person,
+            color: Colors.white,
+          ),
+        ),
+        title: Text(
+          otherName,
+          style: const TextStyle(
+            fontWeight: FontWeight.w800,
+          ),
+        ),
+        subtitle: Text(
+          adTitle.isEmpty
+              ? lastMessage
+              : '$adTitle • $lastMessage',
+          maxLines: 1,
+          overflow:
+              TextOverflow.ellipsis,
+        ),
+        trailing: const Icon(
+          Icons.chevron_right,
+        ),
+        onTap: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (_) => ChatScreen(
+                chatId: chatId,
+                seller: otherName,
+                adTitle: adTitle,
+              ),
+            ),
+          );
+        },
+      ),
+    );
+  }
+
   Widget _profile() {
+    final uid = myUserId;
+
     return ListView(
       padding: const EdgeInsets.all(18),
       children: [
@@ -559,6 +795,18 @@ class _MainScreenState extends State<MainScreen> {
             ),
           ),
         ),
+        const SizedBox(height: 8),
+        Center(
+          child: Text(
+            uid.isEmpty
+                ? 'Connecting...'
+                : 'User ID: ${uid.substring(0, 8)}...',
+            style: const TextStyle(
+              color: Colors.black45,
+              fontSize: 12,
+            ),
+          ),
+        ),
         const SizedBox(height: 24),
         _profileRow(
           Icons.edit_outlined,
@@ -584,14 +832,25 @@ class _MainScreenState extends State<MainScreen> {
     );
   }
 
-  Widget _profileRow(IconData icon, String text) {
+  Widget _profileRow(
+    IconData icon,
+    String text,
+  ) {
     return ListTile(
-      leading: Icon(icon, color: green),
+      leading: Icon(
+        icon,
+        color: green,
+      ),
       title: Text(text),
-      trailing: const Icon(Icons.chevron_right),
+      trailing: const Icon(
+        Icons.chevron_right,
+      ),
       onTap: () {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(text)),
+        ScaffoldMessenger.of(context)
+            .showSnackBar(
+          SnackBar(
+            content: Text(text),
+          ),
         );
       },
     );
@@ -603,17 +862,22 @@ class _MainScreenState extends State<MainScreen> {
       showDragHandle: true,
       builder: (_) {
         return ListView(
-          padding: const EdgeInsets.all(18),
+          padding:
+              const EdgeInsets.all(18),
           children: categories.map((c) {
             return ListTile(
               leading: Text(
                 c[1],
-                style: const TextStyle(fontSize: 25),
+                style: const TextStyle(
+                  fontSize: 25,
+                ),
               ),
               title: Text(c[0]),
               onTap: () {
                 Navigator.pop(context);
-                setState(() => query = c[0]);
+                setState(() {
+                  query = c[0];
+                });
               },
             );
           }).toList(),
@@ -623,14 +887,19 @@ class _MainScreenState extends State<MainScreen> {
   }
 
   Future<void> _postAd() async {
-    final title = TextEditingController();
-    final price = TextEditingController();
-    final desc = TextEditingController();
-    final phone = TextEditingController();
+    final title =
+        TextEditingController();
+    final price =
+        TextEditingController();
+    final desc =
+        TextEditingController();
+    final phone =
+        TextEditingController();
 
     String category = 'Clothes';
     String condition = 'Used - Good';
     String location = 'Maputo';
+
     List<XFile> photos = [];
 
     await showModalBottomSheet(
@@ -643,7 +912,8 @@ class _MainScreenState extends State<MainScreen> {
           builder: (ctx, setM) {
             Future<void> gallery() async {
               final picked =
-                  await ImagePicker().pickMultiImage(
+                  await ImagePicker()
+                      .pickMultiImage(
                 imageQuality: 82,
               );
 
@@ -659,8 +929,10 @@ class _MainScreenState extends State<MainScreen> {
 
             Future<void> camera() async {
               final picked =
-                  await ImagePicker().pickImage(
-                source: ImageSource.camera,
+                  await ImagePicker()
+                      .pickImage(
+                source:
+                    ImageSource.camera,
                 imageQuality: 82,
               );
 
@@ -679,9 +951,13 @@ class _MainScreenState extends State<MainScreen> {
                 18,
                 5,
                 18,
-                MediaQuery.of(ctx).viewInsets.bottom + 16,
+                MediaQuery.of(ctx)
+                        .viewInsets
+                        .bottom +
+                    16,
               ),
-              child: SingleChildScrollView(
+              child:
+                  SingleChildScrollView(
                 child: Column(
                   crossAxisAlignment:
                       CrossAxisAlignment.start,
@@ -690,54 +966,85 @@ class _MainScreenState extends State<MainScreen> {
                       'Post New Ad',
                       style: TextStyle(
                         fontSize: 24,
-                        fontWeight: FontWeight.w900,
+                        fontWeight:
+                            FontWeight.w900,
                       ),
                     ),
                     const SizedBox(height: 5),
                     const Text(
                       'Publicar anúncio • até 10 fotos',
                     ),
-                    const SizedBox(height: 16),
+                    const SizedBox(
+                      height: 16,
+                    ),
 
                     if (photos.isNotEmpty)
                       SizedBox(
                         height: 92,
-                        child: ListView.separated(
-                          scrollDirection: Axis.horizontal,
-                          itemCount: photos.length,
-                          separatorBuilder: (_, __) =>
-                              const SizedBox(width: 8),
-                          itemBuilder: (_, i) {
+                        child:
+                            ListView.separated(
+                          scrollDirection:
+                              Axis.horizontal,
+                          itemCount:
+                              photos.length,
+                          separatorBuilder:
+                              (_, __) =>
+                                  const SizedBox(
+                                width: 8,
+                              ),
+                          itemBuilder:
+                              (_, i) {
                             return Stack(
                               children: [
                                 ClipRRect(
                                   borderRadius:
-                                      BorderRadius.circular(12),
-                                  child: Image.file(
-                                    File(photos[i].path),
+                                      BorderRadius
+                                          .circular(
+                                    12,
+                                  ),
+                                  child:
+                                      Image.file(
+                                    File(
+                                      photos[i]
+                                          .path,
+                                    ),
                                     width: 92,
                                     height: 92,
-                                    fit: BoxFit.cover,
+                                    fit: BoxFit
+                                        .cover,
                                   ),
                                 ),
                                 Positioned(
                                   right: 2,
                                   top: 2,
-                                  child: CircleAvatar(
+                                  child:
+                                      CircleAvatar(
                                     radius: 12,
                                     backgroundColor:
-                                        Colors.black54,
-                                    child: IconButton(
-                                      padding: EdgeInsets.zero,
-                                      onPressed: () {
-                                        setM(() {
-                                          photos.removeAt(i);
-                                        });
+                                        Colors
+                                            .black54,
+                                    child:
+                                        IconButton(
+                                      padding:
+                                          EdgeInsets
+                                              .zero,
+                                      onPressed:
+                                          () {
+                                        setM(
+                                          () {
+                                            photos
+                                                .removeAt(
+                                                    i);
+                                          },
+                                        );
                                       },
-                                      icon: const Icon(
-                                        Icons.close,
+                                      icon:
+                                          const Icon(
+                                        Icons
+                                            .close,
                                         size: 15,
-                                        color: Colors.white,
+                                        color: Colors
+                                            .white,
                                       ),
                                     ),
                                   ),
@@ -748,78 +1055,114 @@ class _MainScreenState extends State<MainScreen> {
                         ),
                       ),
 
-                    const SizedBox(height: 10),
+                    const SizedBox(
+                      height: 10,
+                    ),
 
                     Row(
                       children: [
                         Expanded(
-                          child: OutlinedButton.icon(
-                            onPressed: gallery,
+                          child:
+                              OutlinedButton
+                                  .icon(
+                            onPressed:
+                                gallery,
                             icon: const Icon(
-                              Icons.photo_library_outlined,
+                              Icons
+                                  .photo_library_outlined,
                             ),
-                            label: const Text('Gallery'),
+                            label:
+                                const Text(
+                              'Gallery',
+                            ),
                           ),
                         ),
-                        const SizedBox(width: 8),
+                        const SizedBox(
+                          width: 8,
+                        ),
                         Expanded(
-                          child: OutlinedButton.icon(
-                            onPressed: camera,
+                          child:
+                              OutlinedButton
+                                  .icon(
+                            onPressed:
+                                camera,
                             icon: const Icon(
-                              Icons.camera_alt_outlined,
+                              Icons
+                                  .camera_alt_outlined,
                             ),
-                            label: const Text('Camera'),
+                            label:
+                                const Text(
+                              'Camera',
+                            ),
                           ),
                         ),
                       ],
                     ),
 
-                    const SizedBox(height: 12),
+                    const SizedBox(
+                      height: 12,
+                    ),
 
                     TextField(
                       controller: title,
-                      decoration: const InputDecoration(
+                      decoration:
+                          const InputDecoration(
                         labelText:
                             'Product title / Título',
                       ),
                     ),
 
-                    const SizedBox(height: 10),
+                    const SizedBox(
+                      height: 10,
+                    ),
 
                     TextField(
                       controller: price,
-                      keyboardType: TextInputType.number,
-                      decoration: const InputDecoration(
+                      keyboardType:
+                          TextInputType.number,
+                      decoration:
+                          const InputDecoration(
                         labelText:
                             'Price (MZN) / Preço',
                       ),
                     ),
 
-                    const SizedBox(height: 10),
+                    const SizedBox(
+                      height: 10,
+                    ),
 
-                    DropdownButtonFormField<String>(
+                    DropdownButtonFormField<
+                        String>(
                       value: category,
                       decoration:
                           const InputDecoration(
                         labelText:
                             'Category / Categoria',
                       ),
-                      items: categories.map((c) {
-                        return DropdownMenuItem(
-                          value: c[0],
-                          child: Text(c[0]),
-                        );
-                      }).toList(),
+                      items:
+                          categories.map(
+                        (c) {
+                          return DropdownMenuItem(
+                            value: c[0],
+                            child:
+                                Text(c[0]),
+                          );
+                        },
+                      ).toList(),
                       onChanged: (v) {
                         setM(() {
-                          category = v ?? category;
+                          category =
+                              v ?? category;
                         });
                       },
                     ),
 
-                    const SizedBox(height: 10),
+                    const SizedBox(
+                      height: 10,
+                    ),
 
-                    DropdownButtonFormField<String>(
+                    DropdownButtonFormField<
+                        String>(
                       value: condition,
                       decoration:
                           const InputDecoration(
@@ -834,19 +1177,24 @@ class _MainScreenState extends State<MainScreen> {
                       ].map((c) {
                         return DropdownMenuItem(
                           value: c,
-                          child: Text(c),
+                          child:
+                              Text(c),
                         );
                       }).toList(),
                       onChanged: (v) {
                         setM(() {
-                          condition = v ?? condition;
+                          condition =
+                              v ?? condition;
                         });
                       },
                     ),
 
-                    const SizedBox(height: 10),
+                    const SizedBox(
+                      height: 10,
+                    ),
 
-                    DropdownButtonFormField<String>(
+                    DropdownButtonFormField<
+                        String>(
                       value: location,
                       decoration:
                           const InputDecoration(
@@ -863,42 +1211,55 @@ class _MainScreenState extends State<MainScreen> {
                       ].map((c) {
                         return DropdownMenuItem(
                           value: c,
-                          child: Text(c),
+                          child:
+                              Text(c),
                         );
                       }).toList(),
                       onChanged: (v) {
                         setM(() {
-                          location = v ?? location;
+                          location =
+                              v ?? location;
                         });
                       },
                     ),
 
-                    const SizedBox(height: 10),
+                    const SizedBox(
+                      height: 10,
+                    ),
 
                     TextField(
                       controller: desc,
                       maxLines: 3,
-                      decoration: const InputDecoration(
+                      decoration:
+                          const InputDecoration(
                         labelText:
                             'Description / Descrição',
                       ),
                     ),
 
-                    const SizedBox(height: 10),
+                    const SizedBox(
+                      height: 10,
+                    ),
 
                     TextField(
                       controller: phone,
-                      keyboardType: TextInputType.phone,
-                      decoration: const InputDecoration(
-                        labelText: 'WhatsApp number',
+                      keyboardType:
+                          TextInputType.phone,
+                      decoration:
+                          const InputDecoration(
+                        labelText:
+                            'WhatsApp number',
                       ),
                     ),
 
-                    const SizedBox(height: 16),
+                    const SizedBox(
+                      height: 16,
+                    ),
 
                     SizedBox(
                       width: double.infinity,
-                      child: FilledButton.icon(
+                      child:
+                          FilledButton.icon(
                         onPressed: () {
                           _publish(
                             ctx,
@@ -912,7 +1273,9 @@ class _MainScreenState extends State<MainScreen> {
                             photos,
                           );
                         },
-                        icon: const Icon(Icons.publish),
+                        icon: const Icon(
+                          Icons.publish,
+                        ),
                         label: const Text(
                           'Publish Ad / Publicar',
                         ),
@@ -946,7 +1309,8 @@ class _MainScreenState extends State<MainScreen> {
   ) {
     if (title.text.trim().isEmpty ||
         price.text.trim().isEmpty) {
-      ScaffoldMessenger.of(ctx).showSnackBar(
+      ScaffoldMessenger.of(ctx)
+          .showSnackBar(
         const SnackBar(
           content: Text(
             'Please enter title and price.',
@@ -960,16 +1324,25 @@ class _MainScreenState extends State<MainScreen> {
       ads.insert(
         0,
         Ad(
+          id: DateTime.now()
+              .millisecondsSinceEpoch
+              .toString(),
           title: title.text.trim(),
-          price: '${price.text.trim()} MZN',
+          price:
+              '${price.text.trim()} MZN',
           location: location,
           category: category,
           condition: condition,
-          description: desc.text.trim(),
-          whatsapp: phone.text.trim(),
-          photos: List<XFile>.from(photos),
+          description:
+              desc.text.trim(),
+          whatsapp:
+              phone.text.trim(),
+          sellerId: myUserId,
+          photos:
+              List<XFile>.from(photos),
         ),
       );
+
       tab = 1;
     });
 
@@ -983,23 +1356,29 @@ class _MainScreenState extends State<MainScreen> {
       showDragHandle: true,
       builder: (_) {
         return Padding(
-          padding: const EdgeInsets.fromLTRB(
+          padding:
+              const EdgeInsets.fromLTRB(
             18,
             8,
             18,
             22,
           ),
           child: Column(
-            mainAxisSize: MainAxisSize.min,
+            mainAxisSize:
+                MainAxisSize.min,
             crossAxisAlignment:
                 CrossAxisAlignment.start,
             children: [
               if (ad.photos.isNotEmpty)
                 ClipRRect(
                   borderRadius:
-                      BorderRadius.circular(18),
+                      BorderRadius.circular(
+                    18,
+                  ),
                   child: Image.file(
-                    File(ad.photos.first.path),
+                    File(
+                      ad.photos.first.path,
+                    ),
                     height: 210,
                     width: double.infinity,
                     fit: BoxFit.cover,
@@ -1009,10 +1388,16 @@ class _MainScreenState extends State<MainScreen> {
                 Container(
                   height: 150,
                   width: double.infinity,
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFE9ECE7),
+                  decoration:
+                      BoxDecoration(
+                    color:
+                        const Color(
+                      0xFFE9ECE7,
+                    ),
                     borderRadius:
-                        BorderRadius.circular(18),
+                        BorderRadius.circular(
+                      18,
+                    ),
                   ),
                   child: const Icon(
                     Icons.image_outlined,
@@ -1020,66 +1405,100 @@ class _MainScreenState extends State<MainScreen> {
                   ),
                 ),
 
-              const SizedBox(height: 14),
+              const SizedBox(
+                height: 14,
+              ),
 
               Text(
                 ad.title,
-                style: const TextStyle(
+                style:
+                    const TextStyle(
                   fontSize: 23,
-                  fontWeight: FontWeight.w900,
+                  fontWeight:
+                      FontWeight.w900,
                 ),
               ),
 
-              const SizedBox(height: 4),
+              const SizedBox(
+                height: 4,
+              ),
 
               Text(
                 ad.price,
-                style: const TextStyle(
+                style:
+                    const TextStyle(
                   fontSize: 20,
-                  fontWeight: FontWeight.w900,
+                  fontWeight:
+                      FontWeight.w900,
                   color: green,
                 ),
               ),
 
-              const SizedBox(height: 8),
+              const SizedBox(
+                height: 8,
+              ),
 
               Text(
                 '${ad.location} • ${ad.category} • ${ad.condition}',
-                style: const TextStyle(
+                style:
+                    const TextStyle(
                   color: Colors.black54,
                 ),
               ),
 
-              if (ad.description.isNotEmpty)
+              if (ad.description
+                  .isNotEmpty)
                 Padding(
                   padding:
-                      const EdgeInsets.only(top: 12),
-                  child: Text(ad.description),
+                      const EdgeInsets.only(
+                    top: 12,
+                  ),
+                  child: Text(
+                    ad.description,
+                  ),
                 ),
 
-              const SizedBox(height: 18),
+              const SizedBox(
+                height: 18,
+              ),
 
               Row(
                 children: [
                   Expanded(
-                    child: FilledButton.icon(
+                    child:
+                        FilledButton.icon(
                       onPressed: () =>
                           _whatsapp(ad),
-                      icon: const Icon(Icons.chat),
-                      label: const Text('WhatsApp'),
+                      icon: const Icon(
+                        Icons.chat,
+                      ),
+                      label: const Text(
+                        'WhatsApp',
+                      ),
                     ),
                   ),
-                  const SizedBox(width: 10),
+                  const SizedBox(
+                    width: 10,
+                  ),
                   Expanded(
-                    child: OutlinedButton.icon(
+                    child:
+                        OutlinedButton.icon(
                       onPressed: () {
-                        Navigator.pop(context);
-                        _openChat('Seller chat');
+                        Navigator.pop(
+                          context,
+                        );
+
+                        _openChatWithAd(
+                          ad,
+                        );
                       },
                       icon: const Icon(
-                        Icons.chat_bubble_outline,
+                        Icons
+                            .chat_bubble_outline,
                       ),
-                      label: const Text('Chat'),
+                      label: const Text(
+                        'Chat',
+                      ),
                     ),
                   ),
                 ],
@@ -1091,14 +1510,91 @@ class _MainScreenState extends State<MainScreen> {
     );
   }
 
-  Future<void> _whatsapp(Ad ad) async {
-    final number = ad.whatsapp.replaceAll(
+  String _chatIdForAd(Ad ad) {
+    final current =
+        myUserId.isEmpty
+            ? 'unknown'
+            : myUserId;
+
+    final users = [
+      current,
+      ad.sellerId,
+    ]..sort();
+
+    return '${users[0]}_${users[1]}_${ad.id}';
+  }
+
+  Future<void> _openChatWithAd(
+    Ad ad,
+  ) async {
+    if (ad.sellerId == myUserId) {
+      ScaffoldMessenger.of(context)
+          .showSnackBar(
+        const SnackBar(
+          content: Text(
+            'This is your own ad.',
+          ),
+        ),
+      );
+      return;
+    }
+
+    final chatId =
+        _chatIdForAd(ad);
+
+    final chatRef = FirebaseFirestore
+        .instance
+        .collection('chats')
+        .doc(chatId);
+
+    final existing =
+        await chatRef.get();
+
+    if (!existing.exists) {
+      await chatRef.set({
+        'members': [
+          myUserId,
+          ad.sellerId,
+        ],
+        'adId': ad.id,
+        'adTitle': ad.title,
+        'sellerId': ad.sellerId,
+        'buyerId': myUserId,
+        'otherName': 'Seller',
+        'lastMessage': '',
+        'lastMessageTime':
+            FieldValue.serverTimestamp(),
+        'createdAt':
+            FieldValue.serverTimestamp(),
+      });
+    }
+
+    if (!mounted) return;
+
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => ChatScreen(
+          chatId: chatId,
+          seller: 'Seller',
+          adTitle: ad.title,
+        ),
+      ),
+    );
+  }
+
+  Future<void> _whatsapp(
+    Ad ad,
+  ) async {
+    final number =
+        ad.whatsapp.replaceAll(
       RegExp(r'[^0-9]'),
       '',
     );
 
     if (number.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
+      ScaffoldMessenger.of(context)
+          .showSnackBar(
         const SnackBar(
           content: Text(
             'Seller has not added WhatsApp yet.',
@@ -1114,13 +1610,16 @@ class _MainScreenState extends State<MainScreen> {
       )}',
     );
 
-    final opened = await launchUrl(
+    final opened =
+        await launchUrl(
       uri,
-      mode: LaunchMode.externalApplication,
+      mode:
+          LaunchMode.externalApplication,
     );
 
     if (!opened && mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
+      ScaffoldMessenger.of(context)
+          .showSnackBar(
         const SnackBar(
           content: Text(
             'WhatsApp could not be opened.',
@@ -1129,28 +1628,18 @@ class _MainScreenState extends State<MainScreen> {
       );
     }
   }
-
-  void _openChat(String seller) {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (_) => ChatScreen(
-          seller: seller,
-          messages: messages,
-        ),
-      ),
-    );
-  }
 }
 
 class ChatScreen extends StatefulWidget {
+  final String chatId;
   final String seller;
-  final List<ChatMessage> messages;
+  final String adTitle;
 
   const ChatScreen({
     super.key,
+    required this.chatId,
     required this.seller,
-    required this.messages,
+    required this.adTitle,
   });
 
   @override
@@ -1158,31 +1647,113 @@ class ChatScreen extends StatefulWidget {
       _ChatScreenState();
 }
 
-class _ChatScreenState extends State<ChatScreen> {
-  final TextEditingController controller =
+class _ChatScreenState
+    extends State<ChatScreen> {
+  final TextEditingController
+      controller =
       TextEditingController();
+
+  final ScrollController
+      scrollController =
+      ScrollController();
+
+  String get myUserId {
+    return FirebaseAuth
+            .instance.currentUser
+            ?.uid ??
+        '';
+  }
+
+  CollectionReference<
+      Map<String, dynamic>>
+  get messageCollection {
+    return FirebaseFirestore
+        .instance
+        .collection('chats')
+        .doc(widget.chatId)
+        .collection('messages');
+  }
 
   @override
   void dispose() {
     controller.dispose();
+    scrollController.dispose();
     super.dispose();
   }
 
-  void send() {
-    final text = controller.text.trim();
+  Future<void> send() async {
+    final text =
+        controller.text.trim();
 
     if (text.isEmpty) return;
 
-    setState(() {
-      widget.messages.add(
-        ChatMessage(text, true),
+    controller.clear();
+
+    try {
+      await messageCollection.add({
+        'text': text,
+        'senderId': myUserId,
+        'timestamp':
+            FieldValue.serverTimestamp(),
+      });
+
+      await FirebaseFirestore
+          .instance
+          .collection('chats')
+          .doc(widget.chatId)
+          .set(
+        {
+          'lastMessage': text,
+          'lastMessageTime':
+              FieldValue.serverTimestamp(),
+        },
+        SetOptions(
+          merge: true,
+        ),
       );
-      controller.clear();
-    });
+
+      _scrollToBottom();
+    } catch (e) {
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(context)
+          .showSnackBar(
+        SnackBar(
+          content: Text(
+            'Message failed: $e',
+          ),
+        ),
+      );
+    }
+  }
+
+  void _scrollToBottom() {
+    WidgetsBinding.instance
+        .addPostFrameCallback(
+      (_) {
+        if (!scrollController
+            .hasClients) {
+          return;
+        }
+
+        scrollController.animateTo(
+          scrollController
+              .position
+              .maxScrollExtent,
+          duration:
+              const Duration(
+            milliseconds: 250,
+          ),
+          curve: Curves.easeOut,
+        );
+      },
+    );
   }
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(
+    BuildContext context,
+  ) {
     return Scaffold(
       appBar: AppBar(
         title: Row(
@@ -1196,69 +1767,214 @@ class _ChatScreenState extends State<ChatScreen> {
                 color: Colors.white,
               ),
             ),
-            const SizedBox(width: 10),
-            Text(widget.seller),
+            const SizedBox(
+              width: 10,
+            ),
+            Expanded(
+              child: Column(
+                crossAxisAlignment:
+                    CrossAxisAlignment
+                        .start,
+                children: [
+                  Text(
+                    widget.seller,
+                    style:
+                        const TextStyle(
+                      fontSize: 17,
+                      fontWeight:
+                          FontWeight.w800,
+                    ),
+                  ),
+                  if (widget.adTitle
+                      .isNotEmpty)
+                    Text(
+                      widget.adTitle,
+                      maxLines: 1,
+                      overflow:
+                          TextOverflow
+                              .ellipsis,
+                      style:
+                          const TextStyle(
+                        fontSize: 11,
+                        color:
+                            Colors.black54,
+                      ),
+                    ),
+                ],
+              ),
+            ),
           ],
         ),
       ),
       body: Column(
         children: [
           Expanded(
-            child: ListView.builder(
-              padding: const EdgeInsets.all(16),
-              itemCount: widget.messages.length,
-              itemBuilder: (context, i) {
-                final message =
-                    widget.messages[i];
-
-                return Align(
-                  alignment: message.mine
-                      ? Alignment.centerRight
-                      : Alignment.centerLeft,
-                  child: Container(
-                    constraints:
-                        const BoxConstraints(
-                      maxWidth: 300,
-                    ),
-                    margin:
-                        const EdgeInsets.only(
-                      bottom: 10,
-                    ),
-                    padding:
-                        const EdgeInsets.symmetric(
-                      horizontal: 14,
-                      vertical: 10,
-                    ),
-                    decoration: BoxDecoration(
-                      color: message.mine
-                          ? green
-                          : Colors.white,
-                      borderRadius:
-                          BorderRadius.circular(16),
-                      border: message.mine
-                          ? null
-                          : Border.all(
-                              color: Colors.black12,
-                            ),
-                    ),
+            child: StreamBuilder<
+                QuerySnapshot<
+                    Map<String,
+                        dynamic>>>(
+              stream: messageCollection
+                  .orderBy(
+                    'timestamp',
+                    descending: false,
+                  )
+                  .snapshots(),
+              builder:
+                  (context, snapshot) {
+                if (snapshot
+                    .hasError) {
+                  return const Center(
                     child: Text(
-                      message.text,
-                      style: TextStyle(
-                        color: message.mine
-                            ? Colors.white
-                            : dark,
-                        fontSize: 15,
-                      ),
+                      'Unable to load messages.',
                     ),
+                  );
+                }
+
+                if (snapshot
+                        .connectionState ==
+                    ConnectionState
+                        .waiting) {
+                  return const Center(
+                    child:
+                        CircularProgressIndicator(),
+                  );
+                }
+
+                final docs =
+                    snapshot.data?.docs ??
+                        [];
+
+                if (docs.isEmpty) {
+                  return const Center(
+                    child: Column(
+                      mainAxisSize:
+                          MainAxisSize.min,
+                      children: [
+                        Icon(
+                          Icons
+                              .chat_bubble_outline,
+                          size: 55,
+                          color:
+                              Colors.black26,
+                        ),
+                        SizedBox(
+                          height: 10,
+                        ),
+                        Text(
+                          'Start the conversation',
+                          style:
+                              TextStyle(
+                            fontSize: 17,
+                            fontWeight:
+                                FontWeight
+                                    .w700,
+                          ),
+                        ),
+                        SizedBox(
+                          height: 5,
+                        ),
+                        Text(
+                          'Send a message to the seller.',
+                        ),
+                      ],
+                    ),
+                  );
+                }
+
+                _scrollToBottom();
+
+                return ListView.builder(
+                  controller:
+                      scrollController,
+                  padding:
+                      const EdgeInsets.all(
+                    16,
                   ),
+                  itemCount:
+                      docs.length,
+                  itemBuilder:
+                      (context, i) {
+                    final data =
+                        docs[i].data();
+
+                    final text =
+                        data['text']
+                                ?.toString() ??
+                            '';
+
+                    final senderId =
+                        data['senderId']
+                                ?.toString() ??
+                            '';
+
+                    final mine =
+                        senderId ==
+                            myUserId;
+
+                    return Align(
+                      alignment: mine
+                          ? Alignment
+                              .centerRight
+                          : Alignment
+                              .centerLeft,
+                      child: Container(
+                        constraints:
+                            const BoxConstraints(
+                          maxWidth: 300,
+                        ),
+                        margin:
+                            const EdgeInsets
+                                .only(
+                          bottom: 10,
+                        ),
+                        padding:
+                            const EdgeInsets
+                                .symmetric(
+                          horizontal: 14,
+                          vertical: 10,
+                        ),
+                        decoration:
+                            BoxDecoration(
+                          color: mine
+                              ? green
+                              : Colors
+                                  .white,
+                          borderRadius:
+                              BorderRadius
+                                  .circular(
+                            16,
+                          ),
+                          border: mine
+                              ? null
+                              : Border.all(
+                                  color: Colors
+                                      .black12,
+                                ),
+                        ),
+                        child: Text(
+                          text,
+                          style:
+                              TextStyle(
+                            color: mine
+                                ? Colors
+                                    .white
+                                : dark,
+                            fontSize: 15,
+                          ),
+                        ),
+                      ),
+                    );
+                  },
                 );
               },
             ),
           ),
+
           SafeArea(
             child: Padding(
               padding:
-                  const EdgeInsets.fromLTRB(
+                  const EdgeInsets
+                      .fromLTRB(
                 10,
                 6,
                 10,
@@ -1268,26 +1984,38 @@ class _ChatScreenState extends State<ChatScreen> {
                 children: [
                   Expanded(
                     child: TextField(
-                      controller: controller,
+                      controller:
+                          controller,
                       textInputAction:
-                          TextInputAction.send,
-                      onSubmitted: (_) => send(),
+                          TextInputAction
+                              .send,
+                      onSubmitted:
+                          (_) => send(),
                       decoration:
                           const InputDecoration(
                         hintText:
                             'Type a message / Escreva uma mensagem...',
-                        prefixIcon: Icon(
-                          Icons.chat_outlined,
+                        prefixIcon:
+                            Icon(
+                          Icons
+                              .chat_outlined,
                         ),
                       ),
                     ),
                   ),
-                  const SizedBox(width: 8),
-                  FloatingActionButton.small(
-                    backgroundColor: green,
-                    foregroundColor: Colors.white,
+                  const SizedBox(
+                    width: 8,
+                  ),
+                  FloatingActionButton
+                      .small(
+                    backgroundColor:
+                        green,
+                    foregroundColor:
+                        Colors.white,
                     onPressed: send,
-                    child: const Icon(Icons.send),
+                    child: const Icon(
+                      Icons.send,
+                    ),
                   ),
                 ],
               ),
