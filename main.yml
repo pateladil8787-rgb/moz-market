@@ -71,6 +71,36 @@ jobs:
           p.write_text(s)
           PY
 
+      - name: Configure Firebase in Dart
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+
+          p = Path("lib/main.dart")
+          s = p.read_text()
+
+          old = """await Firebase.initializeApp();"""
+
+          new = """await Firebase.initializeApp(
+            options: const FirebaseOptions(
+              apiKey: 'AIzaSyC7zAK_ySU6zDX-QycAuRG_qvsoOWa-LU8',
+              appId: '1:933199096217:android:1e62ae55af50bbb0c68b08',
+              messagingSenderId: '933199096217',
+              projectId: 'moz-market-b2c50',
+              storageBucket: 'moz-market-b2c50.firebasestorage.app',
+            ),
+          );"""
+
+          if old not in s:
+              raise SystemExit(
+                  'Firebase.initializeApp() was not found in lib/main.dart'
+              )
+
+          s = s.replace(old, new, 1)
+
+          p.write_text(s)
+          PY
+
       - name: Build APK
         run: |
           flutter pub get
