@@ -51,20 +51,6 @@ class Ad {
   });
 }
 
-class ChatMessage {
-  final String id;
-  final String text;
-  final String senderId;
-  final Timestamp? timestamp;
-
-  ChatMessage({
-    required this.id,
-    required this.text,
-    required this.senderId,
-    this.timestamp,
-  });
-}
-
 class MozMarketApp extends StatelessWidget {
   const MozMarketApp({super.key});
 
@@ -76,12 +62,15 @@ class MozMarketApp extends StatelessWidget {
       theme: ThemeData(
         useMaterial3: true,
         scaffoldBackgroundColor: bg,
-        colorScheme: ColorScheme.fromSeed(seedColor: green),
+        colorScheme: ColorScheme.fromSeed(
+          seedColor: green,
+        ),
         appBarTheme: const AppBarTheme(
           backgroundColor: bg,
           surfaceTintColor: Colors.transparent,
         ),
-        inputDecorationTheme: const InputDecorationTheme(
+        inputDecorationTheme:
+            const InputDecorationTheme(
           filled: true,
           fillColor: Colors.white,
           border: OutlineInputBorder(
@@ -101,7 +90,8 @@ class MainScreen extends StatefulWidget {
   const MainScreen({super.key});
 
   @override
-  State<MainScreen> createState() => _MainScreenState();
+  State<MainScreen> createState() =>
+      _MainScreenState();
 }
 
 class _MainScreenState extends State<MainScreen> {
@@ -116,7 +106,8 @@ class _MainScreenState extends State<MainScreen> {
       location: 'Maputo',
       category: 'Phones',
       condition: 'Used - Like New',
-      description: 'Excellent condition. Ready to use.',
+      description:
+          'Excellent condition. Ready to use.',
       whatsapp: '258820000000',
       sellerId: 'demo_seller_1',
       photos: [],
@@ -203,13 +194,21 @@ class _MainScreenState extends State<MainScreen> {
             label: 'Home',
           ),
           NavigationDestination(
-            icon: Icon(Icons.inventory_2_outlined),
-            selectedIcon: Icon(Icons.inventory_2),
+            icon: Icon(
+              Icons.inventory_2_outlined,
+            ),
+            selectedIcon: Icon(
+              Icons.inventory_2,
+            ),
             label: 'My Ads',
           ),
           NavigationDestination(
-            icon: Icon(Icons.chat_bubble_outline),
-            selectedIcon: Icon(Icons.chat_bubble),
+            icon: Icon(
+              Icons.chat_bubble_outline,
+            ),
+            selectedIcon: Icon(
+              Icons.chat_bubble,
+            ),
             label: 'Chat',
           ),
           NavigationDestination(
@@ -237,9 +236,11 @@ class _MainScreenState extends State<MainScreen> {
         ),
         IconButton(
           onPressed: () {
-            ScaffoldMessenger.of(context).showSnackBar(
+            ScaffoldMessenger.of(context)
+                .showSnackBar(
               const SnackBar(
-                content: Text('No new notifications.'),
+                content:
+                    Text('No new notifications.'),
               ),
             );
           },
@@ -274,6 +275,7 @@ class _MainScreenState extends State<MainScreen> {
       children: [
         _header(),
         const SizedBox(height: 16),
+
         TextField(
           onChanged: (value) {
             setState(() {
@@ -281,16 +283,21 @@ class _MainScreenState extends State<MainScreen> {
             });
           },
           decoration: const InputDecoration(
-            hintText: 'Search / Procurar...',
-            prefixIcon: Icon(Icons.search),
+            hintText:
+                'Search / Procurar...',
+            prefixIcon:
+                Icon(Icons.search),
           ),
         ),
+
         const SizedBox(height: 18),
+
         Container(
           padding: const EdgeInsets.all(22),
           decoration: BoxDecoration(
             color: green,
-            borderRadius: BorderRadius.circular(24),
+            borderRadius:
+                BorderRadius.circular(24),
           ),
           child: const Column(
             crossAxisAlignment:
@@ -315,7 +322,9 @@ class _MainScreenState extends State<MainScreen> {
             ],
           ),
         ),
+
         const SizedBox(height: 24),
+
         Row(
           children: [
             const Expanded(
@@ -323,21 +332,26 @@ class _MainScreenState extends State<MainScreen> {
                 'Categories',
                 style: TextStyle(
                   fontSize: 20,
-                  fontWeight: FontWeight.w900,
+                  fontWeight:
+                      FontWeight.w900,
                 ),
               ),
             ),
             TextButton(
               onPressed: _showCategories,
-              child: const Text('See all'),
+              child:
+                  const Text('See all'),
             ),
           ],
         ),
+
         SizedBox(
           height: 105,
           child: ListView.separated(
-            scrollDirection: Axis.horizontal,
-            itemCount: categories.length,
+            scrollDirection:
+                Axis.horizontal,
+            itemCount:
+                categories.length,
             separatorBuilder: (_, __) =>
                 const SizedBox(width: 10),
             itemBuilder: (_, i) {
@@ -348,7 +362,9 @@ class _MainScreenState extends State<MainScreen> {
             },
           ),
         ),
+
         const SizedBox(height: 22),
+
         const Text(
           'Featured Ads',
           style: TextStyle(
@@ -356,11 +372,15 @@ class _MainScreenState extends State<MainScreen> {
             fontWeight: FontWeight.w900,
           ),
         ),
+
         const SizedBox(height: 12),
+
         ...filtered.map(_card),
+
         if (filtered.isEmpty)
           const Padding(
-            padding: EdgeInsets.all(30),
+            padding:
+                EdgeInsets.all(30),
             child: Center(
               child: Text(
                 'No ads found / Nenhum anúncio encontrado',
@@ -383,10 +403,12 @@ class _MainScreenState extends State<MainScreen> {
       },
       child: Container(
         width: 92,
-        padding: const EdgeInsets.all(9),
+        padding:
+            const EdgeInsets.all(9),
         decoration: BoxDecoration(
           color: Colors.white,
-          borderRadius: BorderRadius.circular(16),
+          borderRadius:
+              BorderRadius.circular(16),
           border: Border.all(
             color: Colors.black12,
           ),
@@ -404,13 +426,15 @@ class _MainScreenState extends State<MainScreen> {
             const SizedBox(height: 5),
             Text(
               name,
-              textAlign: TextAlign.center,
+              textAlign:
+                  TextAlign.center,
               maxLines: 2,
               overflow:
                   TextOverflow.ellipsis,
               style: const TextStyle(
                 fontSize: 11,
-                fontWeight: FontWeight.w700,
+                fontWeight:
+                    FontWeight.w700,
               ),
             ),
           ],
@@ -421,21 +445,27 @@ class _MainScreenState extends State<MainScreen> {
 
   Widget _card(Ad ad) {
     return Card(
-      margin: const EdgeInsets.only(
+      margin:
+          const EdgeInsets.only(
         bottom: 12,
       ),
       elevation: 0,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(18),
+      shape:
+          RoundedRectangleBorder(
+        borderRadius:
+            BorderRadius.circular(18),
         side: const BorderSide(
           color: Colors.black12,
         ),
       ),
       child: InkWell(
-        borderRadius: BorderRadius.circular(18),
-        onTap: () => _details(ad),
+        borderRadius:
+            BorderRadius.circular(18),
+        onTap: () =>
+            _details(ad),
         child: Padding(
-          padding: const EdgeInsets.all(10),
+          padding:
+              const EdgeInsets.all(10),
           child: Row(
             children: [
               _thumb(ad),
@@ -443,37 +473,46 @@ class _MainScreenState extends State<MainScreen> {
               Expanded(
                 child: Column(
                   crossAxisAlignment:
-                      CrossAxisAlignment.start,
+                      CrossAxisAlignment
+                          .start,
                   children: [
                     Text(
                       ad.title,
                       maxLines: 1,
                       overflow:
                           TextOverflow.ellipsis,
-                      style: const TextStyle(
+                      style:
+                          const TextStyle(
                         fontWeight:
                             FontWeight.w800,
                         fontSize: 16,
                       ),
                     ),
-                    const SizedBox(height: 5),
+                    const SizedBox(
+                      height: 5,
+                    ),
                     Text(
                       ad.price,
-                      style: const TextStyle(
+                      style:
+                          const TextStyle(
                         fontWeight:
                             FontWeight.w900,
                         color: green,
                         fontSize: 15,
                       ),
                     ),
-                    const SizedBox(height: 5),
+                    const SizedBox(
+                      height: 5,
+                    ),
                     Text(
                       '${ad.location} • ${ad.category}',
                       maxLines: 1,
                       overflow:
                           TextOverflow.ellipsis,
-                      style: const TextStyle(
-                        color: Colors.black54,
+                      style:
+                          const TextStyle(
+                        color:
+                            Colors.black54,
                         fontSize: 12,
                       ),
                     ),
@@ -509,7 +548,9 @@ class _MainScreenState extends State<MainScreen> {
           BorderRadius.circular(14),
       child: ad.photos.isNotEmpty
           ? Image.file(
-              File(ad.photos.first.path),
+              File(
+                ad.photos.first.path,
+              ),
               width: 78,
               height: 78,
               fit: BoxFit.cover,
@@ -530,12 +571,14 @@ class _MainScreenState extends State<MainScreen> {
   Widget _myAds() {
     final myAds = ads
         .where(
-          (ad) => ad.sellerId == myUserId,
+          (ad) =>
+              ad.sellerId == myUserId,
         )
         .toList();
 
     return ListView(
-      padding: const EdgeInsets.fromLTRB(
+      padding:
+          const EdgeInsets.fromLTRB(
         18,
         18,
         18,
@@ -554,8 +597,10 @@ class _MainScreenState extends State<MainScreen> {
           'Os seus anúncios publicados',
         ),
         const SizedBox(height: 18),
+
         if (myAds.isNotEmpty)
           ...myAds.map(_card),
+
         if (myAds.isEmpty)
           Center(
             child: Padding(
@@ -566,15 +611,21 @@ class _MainScreenState extends State<MainScreen> {
               child: Column(
                 children: [
                   const Icon(
-                    Icons.inventory_2_outlined,
+                    Icons
+                        .inventory_2_outlined,
                     size: 58,
-                    color: Colors.black38,
+                    color:
+                        Colors.black38,
                   ),
-                  const SizedBox(height: 10),
+                  const SizedBox(
+                    height: 10,
+                  ),
                   const Text(
                     'Your ads will appear here.',
                   ),
-                  const SizedBox(height: 12),
+                  const SizedBox(
+                    height: 12,
+                  ),
                   FilledButton.icon(
                     onPressed: _postAd,
                     icon: const Icon(
@@ -592,69 +643,121 @@ class _MainScreenState extends State<MainScreen> {
     );
   }
 
+  // CHAT LIST
+  // Important: no orderBy here.
+  // This avoids the composite index problem.
   Widget _chatList() {
     final uid = myUserId;
 
+    if (uid.isEmpty) {
+      return const Center(
+        child:
+            CircularProgressIndicator(),
+      );
+    }
+
     return StreamBuilder<
-        QuerySnapshot<Map<String, dynamic>>>(
-      stream: FirebaseFirestore.instance
+        QuerySnapshot<Map<String,
+            dynamic>>>(
+      stream: FirebaseFirestore
+          .instance
           .collection('chats')
           .where(
             'members',
             arrayContains: uid,
           )
-          .orderBy(
-            'lastMessageTime',
-            descending: true,
-          )
           .snapshots(),
+
       builder: (context, snapshot) {
         if (snapshot.hasError) {
-          return _chatError();
+          return _chatError(
+            snapshot.error.toString(),
+          );
         }
 
         if (snapshot.connectionState ==
             ConnectionState.waiting) {
           return const Center(
-            child: CircularProgressIndicator(),
+            child:
+                CircularProgressIndicator(),
           );
         }
 
-        final docs = snapshot.data?.docs ?? [];
+        final docs =
+            snapshot.data?.docs ?? [];
+
+        // Sort chats locally by lastMessageTime.
+        docs.sort((a, b) {
+          final aTime =
+              a.data()['lastMessageTime'];
+          final bTime =
+              b.data()['lastMessageTime'];
+
+          if (aTime is Timestamp &&
+              bTime is Timestamp) {
+            return bTime.compareTo(
+              aTime,
+            );
+          }
+
+          if (aTime is Timestamp) {
+            return -1;
+          }
+
+          if (bTime is Timestamp) {
+            return 1;
+          }
+
+          return 0;
+        });
 
         return ListView(
-          padding: const EdgeInsets.all(18),
+          padding:
+              const EdgeInsets.all(18),
           children: [
             const Text(
               'Chat',
               style: TextStyle(
                 fontSize: 25,
-                fontWeight: FontWeight.w900,
+                fontWeight:
+                    FontWeight.w900,
               ),
             ),
+
             const SizedBox(height: 18),
+
             if (docs.isEmpty)
               const Padding(
                 padding:
-                    EdgeInsets.only(top: 100),
+                    EdgeInsets.only(
+                  top: 100,
+                ),
                 child: Center(
                   child: Column(
                     children: [
                       Icon(
-                        Icons.chat_bubble_outline,
+                        Icons
+                            .chat_bubble_outline,
                         size: 60,
-                        color: Colors.black38,
+                        color:
+                            Colors.black38,
                       ),
-                      SizedBox(height: 12),
+                      SizedBox(
+                        height: 12,
+                      ),
                       Text(
                         'No chats yet.',
-                        style: TextStyle(
+                        style:
+                            TextStyle(
                           fontSize: 18,
                           fontWeight:
-                              FontWeight.w700,
+                              FontWeight
+                                  .w700,
                         ),
                       ),
-                      SizedBox(height: 5),
+                      SizedBox(
+                        height: 5,
+                      ),
                       Text(
                         'Open an ad and tap Chat.',
                         textAlign:
@@ -664,6 +767,7 @@ class _MainScreenState extends State<MainScreen> {
                   ),
                 ),
               ),
+
             ...docs.map(
               (doc) => _chatTile(
                 doc.id,
@@ -676,28 +780,45 @@ class _MainScreenState extends State<MainScreen> {
     );
   }
 
-  Widget _chatError() {
+  Widget _chatError(String error) {
     return ListView(
-      padding: const EdgeInsets.all(18),
-      children: const [
-        Text(
+      padding:
+          const EdgeInsets.all(18),
+      children: [
+        const Text(
           'Chat',
           style: TextStyle(
             fontSize: 25,
             fontWeight: FontWeight.w900,
           ),
         ),
-        SizedBox(height: 30),
-        Icon(
+        const SizedBox(height: 30),
+        const Icon(
           Icons.cloud_off,
           size: 55,
           color: Colors.black38,
         ),
-        SizedBox(height: 12),
-        Center(
+        const SizedBox(height: 12),
+        const Center(
           child: Text(
-            'Chat database setup is required.',
-            textAlign: TextAlign.center,
+            'Unable to load chats.',
+            textAlign:
+                TextAlign.center,
+            style: TextStyle(
+              fontSize: 17,
+              fontWeight:
+                  FontWeight.w700,
+            ),
+          ),
+        ),
+        const SizedBox(height: 10),
+        Text(
+          error,
+          textAlign:
+              TextAlign.center,
+          style: const TextStyle(
+            color: Colors.black45,
+            fontSize: 11,
           ),
         ),
       ],
@@ -709,20 +830,25 @@ class _MainScreenState extends State<MainScreen> {
     Map<String, dynamic> data,
   ) {
     final otherName =
-        data['otherName']?.toString() ??
+        data['otherName']
+                ?.toString() ??
             'MOZ MARKET User';
 
     final adTitle =
-        data['adTitle']?.toString() ?? '';
+        data['adTitle']
+                ?.toString() ??
+            '';
 
     final lastMessage =
-        data['lastMessage']?.toString() ??
+        data['lastMessage']
+                ?.toString() ??
             'Start chatting';
 
     return Card(
       elevation: 0,
       child: ListTile(
-        leading: const CircleAvatar(
+        leading:
+            const CircleAvatar(
           backgroundColor: green,
           child: Icon(
             Icons.person,
@@ -731,8 +857,10 @@ class _MainScreenState extends State<MainScreen> {
         ),
         title: Text(
           otherName,
-          style: const TextStyle(
-            fontWeight: FontWeight.w800,
+          style:
+              const TextStyle(
+            fontWeight:
+                FontWeight.w800,
           ),
         ),
         subtitle: Text(
@@ -743,14 +871,16 @@ class _MainScreenState extends State<MainScreen> {
           overflow:
               TextOverflow.ellipsis,
         ),
-        trailing: const Icon(
+        trailing:
+            const Icon(
           Icons.chevron_right,
         ),
         onTap: () {
           Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (_) => ChatScreen(
+              builder: (_) =>
+                  ChatScreen(
                 chatId: chatId,
                 seller: otherName,
                 adTitle: adTitle,
@@ -766,7 +896,8 @@ class _MainScreenState extends State<MainScreen> {
     final uid = myUserId;
 
     return ListView(
-      padding: const EdgeInsets.all(18),
+      padding:
+          const EdgeInsets.all(18),
       children: [
         const Text(
           'Profile',
@@ -776,6 +907,7 @@ class _MainScreenState extends State<MainScreen> {
           ),
         ),
         const SizedBox(height: 20),
+
         const CircleAvatar(
           radius: 42,
           backgroundColor: green,
@@ -785,29 +917,37 @@ class _MainScreenState extends State<MainScreen> {
             color: Colors.white,
           ),
         ),
+
         const SizedBox(height: 12),
+
         const Center(
           child: Text(
             'MOZ MARKET User',
             style: TextStyle(
               fontSize: 20,
-              fontWeight: FontWeight.w900,
+              fontWeight:
+                  FontWeight.w900,
             ),
           ),
         ),
+
         const SizedBox(height: 8),
+
         Center(
           child: Text(
             uid.isEmpty
                 ? 'Connecting...'
-                : 'User ID: ${uid.substring(0, 8)}...',
-            style: const TextStyle(
+                : 'User ID: ${uid.substring(0, uid.length > 8 ? 8 : uid.length)}...',
+            style:
+                const TextStyle(
               color: Colors.black45,
               fontSize: 12,
             ),
           ),
         ),
+
         const SizedBox(height: 24),
+
         _profileRow(
           Icons.edit_outlined,
           'Edit profile',
@@ -842,7 +982,8 @@ class _MainScreenState extends State<MainScreen> {
         color: green,
       ),
       title: Text(text),
-      trailing: const Icon(
+      trailing:
+          const Icon(
         Icons.chevron_right,
       ),
       onTap: () {
@@ -864,17 +1005,22 @@ class _MainScreenState extends State<MainScreen> {
         return ListView(
           padding:
               const EdgeInsets.all(18),
-          children: categories.map((c) {
+          children:
+              categories.map((c) {
             return ListTile(
               leading: Text(
                 c[1],
-                style: const TextStyle(
+                style:
+                    const TextStyle(
                   fontSize: 25,
                 ),
               ),
               title: Text(c[0]),
               onTap: () {
-                Navigator.pop(context);
+                Navigator.pop(
+                  context,
+                );
+
                 setState(() {
                   query = c[0];
                 });
@@ -897,7 +1043,8 @@ class _MainScreenState extends State<MainScreen> {
         TextEditingController();
 
     String category = 'Clothes';
-    String condition = 'Used - Good';
+    String condition =
+        'Used - Good';
     String location = 'Maputo';
 
     List<XFile> photos = [];
@@ -909,7 +1056,8 @@ class _MainScreenState extends State<MainScreen> {
       showDragHandle: true,
       builder: (ctx) {
         return StatefulBuilder(
-          builder: (ctx, setM) {
+          builder:
+              (ctx, setM) {
             Future<void> gallery() async {
               final picked =
                   await ImagePicker()
@@ -922,7 +1070,9 @@ class _MainScreenState extends State<MainScreen> {
                   photos = [
                     ...photos,
                     ...picked,
-                  ].take(10).toList();
+                  ]
+                      .take(10)
+                      .toList();
                 });
               }
             }
@@ -941,13 +1091,16 @@ class _MainScreenState extends State<MainScreen> {
                   photos = [
                     ...photos,
                     picked,
-                  ].take(10).toList();
+                  ]
+                      .take(10)
+                      .toList();
                 });
               }
             }
 
             return Padding(
-              padding: EdgeInsets.fromLTRB(
+              padding:
+                  EdgeInsets.fromLTRB(
                 18,
                 5,
                 18,
@@ -960,29 +1113,39 @@ class _MainScreenState extends State<MainScreen> {
                   SingleChildScrollView(
                 child: Column(
                   crossAxisAlignment:
-                      CrossAxisAlignment.start,
+                      CrossAxisAlignment
+                          .start,
                   children: [
                     const Text(
                       'Post New Ad',
-                      style: TextStyle(
+                      style:
+                          TextStyle(
                         fontSize: 24,
                         fontWeight:
-                            FontWeight.w900,
+                            FontWeight
+                                .w900,
                       ),
                     ),
-                    const SizedBox(height: 5),
+
+                    const SizedBox(
+                      height: 5,
+                    ),
+
                     const Text(
                       'Publicar anúncio • até 10 fotos',
                     ),
+
                     const SizedBox(
                       height: 16,
                     ),
 
-                    if (photos.isNotEmpty)
+                    if (photos
+                        .isNotEmpty)
                       SizedBox(
                         height: 92,
                         child:
-                            ListView.separated(
+                            ListView
+                                .separated(
                           scrollDirection:
                               Axis.horizontal,
                           itemCount:
@@ -990,8 +1153,8 @@ class _MainScreenState extends State<MainScreen> {
                           separatorBuilder:
                               (_, __) =>
                                   const SizedBox(
-                                width: 8,
-                              ),
+                            width: 8,
+                          ),
                           itemBuilder:
                               (_, i) {
                             return Stack(
@@ -1008,8 +1171,10 @@ class _MainScreenState extends State<MainScreen> {
                                       photos[i]
                                           .path,
                                     ),
-                                    width: 92,
-                                    height: 92,
+                                    width:
+                                        92,
+                                    height:
+                                        92,
                                     fit: BoxFit
                                         .cover,
                                   ),
@@ -1019,7 +1184,8 @@ class _MainScreenState extends State<MainScreen> {
                                   top: 2,
                                   child:
                                       CircleAvatar(
-                                    radius: 12,
+                                    radius:
+                                        12,
                                     backgroundColor:
                                         Colors
                                             .black54,
@@ -1032,9 +1198,8 @@ class _MainScreenState extends State<MainScreen> {
                                           () {
                                         setM(
                                           () {
-                                            photos
-                                                .removeAt(
-                                                    i);
+                                            photos.removeAt(
+                                                i);
                                           },
                                         );
                                       },
@@ -1042,7 +1207,8 @@ class _MainScreenState extends State<MainScreen> {
                                           const Icon(
                                         Icons
                                             .close,
-                                        size: 15,
+                                        size:
+                                            15,
                                         color: Colors
                                             .white,
                                       ),
@@ -1067,7 +1233,8 @@ class _MainScreenState extends State<MainScreen> {
                                   .icon(
                             onPressed:
                                 gallery,
-                            icon: const Icon(
+                            icon:
+                                const Icon(
                               Icons
                                   .photo_library_outlined,
                             ),
@@ -1086,7 +1253,8 @@ class _MainScreenState extends State<MainScreen> {
                                   .icon(
                             onPressed:
                                 camera,
-                            icon: const Icon(
+                            icon:
+                                const Icon(
                               Icons
                                   .camera_alt_outlined,
                             ),
@@ -1139,20 +1307,20 @@ class _MainScreenState extends State<MainScreen> {
                         labelText:
                             'Category / Categoria',
                       ),
-                      items:
-                          categories.map(
-                        (c) {
-                          return DropdownMenuItem(
-                            value: c[0],
-                            child:
-                                Text(c[0]),
-                          );
-                        },
-                      ).toList(),
+                      items: categories
+                          .map((c) {
+                        return DropdownMenuItem<
+                            String>(
+                          value: c[0],
+                          child:
+                              Text(c[0]),
+                        );
+                      }).toList(),
                       onChanged: (v) {
                         setM(() {
                           category =
-                              v ?? category;
+                              v ??
+                                  category;
                         });
                       },
                     ),
@@ -1175,7 +1343,8 @@ class _MainScreenState extends State<MainScreen> {
                         'Used - Good',
                         'Used - Fair',
                       ].map((c) {
-                        return DropdownMenuItem(
+                        return DropdownMenuItem<
+                            String>(
                           value: c,
                           child:
                               Text(c),
@@ -1184,7 +1353,8 @@ class _MainScreenState extends State<MainScreen> {
                       onChanged: (v) {
                         setM(() {
                           condition =
-                              v ?? condition;
+                              v ??
+                                  condition;
                         });
                       },
                     ),
@@ -1209,7 +1379,8 @@ class _MainScreenState extends State<MainScreen> {
                         'Chimoio',
                         'Other',
                       ].map((c) {
-                        return DropdownMenuItem(
+                        return DropdownMenuItem<
+                            String>(
                           value: c,
                           child:
                               Text(c),
@@ -1218,7 +1389,8 @@ class _MainScreenState extends State<MainScreen> {
                       onChanged: (v) {
                         setM(() {
                           location =
-                              v ?? location;
+                              v ??
+                                  location;
                         });
                       },
                     ),
@@ -1257,7 +1429,8 @@ class _MainScreenState extends State<MainScreen> {
                     ),
 
                     SizedBox(
-                      width: double.infinity,
+                      width:
+                          double.infinity,
                       child:
                           FilledButton.icon(
                         onPressed: () {
@@ -1273,10 +1446,12 @@ class _MainScreenState extends State<MainScreen> {
                             photos,
                           );
                         },
-                        icon: const Icon(
+                        icon:
+                            const Icon(
                           Icons.publish,
                         ),
-                        label: const Text(
+                        label:
+                            const Text(
                           'Publish Ad / Publicar',
                         ),
                       ),
@@ -1327,7 +1502,8 @@ class _MainScreenState extends State<MainScreen> {
           id: DateTime.now()
               .millisecondsSinceEpoch
               .toString(),
-          title: title.text.trim(),
+          title:
+              title.text.trim(),
           price:
               '${price.text.trim()} MZN',
           location: location,
@@ -1339,7 +1515,9 @@ class _MainScreenState extends State<MainScreen> {
               phone.text.trim(),
           sellerId: myUserId,
           photos:
-              List<XFile>.from(photos),
+              List<XFile>.from(
+            photos,
+          ),
         ),
       );
 
@@ -1380,27 +1558,31 @@ class _MainScreenState extends State<MainScreen> {
                       ad.photos.first.path,
                     ),
                     height: 210,
-                    width: double.infinity,
+                    width:
+                        double.infinity,
                     fit: BoxFit.cover,
                   ),
                 )
               else
                 Container(
                   height: 150,
-                  width: double.infinity,
+                  width:
+                      double.infinity,
                   decoration:
                       BoxDecoration(
-                    color:
-                        const Color(
+                    color: const Color(
                       0xFFE9ECE7,
                     ),
                     borderRadius:
-                        BorderRadius.circular(
+                        BorderRadius
+                            .circular(
                       18,
                     ),
                   ),
-                  child: const Icon(
-                    Icons.image_outlined,
+                  child:
+                      const Icon(
+                    Icons
+                        .image_outlined,
                     size: 55,
                   ),
                 ),
@@ -1450,10 +1632,12 @@ class _MainScreenState extends State<MainScreen> {
                   .isNotEmpty)
                 Padding(
                   padding:
-                      const EdgeInsets.only(
+                      const EdgeInsets
+                          .only(
                     top: 12,
                   ),
-                  child: Text(
+                  child:
+                      Text(
                     ad.description,
                   ),
                 ),
@@ -1469,10 +1653,12 @@ class _MainScreenState extends State<MainScreen> {
                         FilledButton.icon(
                       onPressed: () =>
                           _whatsapp(ad),
-                      icon: const Icon(
+                      icon:
+                          const Icon(
                         Icons.chat,
                       ),
-                      label: const Text(
+                      label:
+                          const Text(
                         'WhatsApp',
                       ),
                     ),
@@ -1496,7 +1682,8 @@ class _MainScreenState extends State<MainScreen> {
                         Icons
                             .chat_bubble_outline,
                       ),
-                      label: const Text(
+                      label:
+                          const Text(
                         'Chat',
                       ),
                     ),
@@ -1527,7 +1714,8 @@ class _MainScreenState extends State<MainScreen> {
   Future<void> _openChatWithAd(
     Ad ad,
   ) async {
-    if (ad.sellerId == myUserId) {
+    if (ad.sellerId ==
+        myUserId) {
       ScaffoldMessenger.of(context)
           .showSnackBar(
         const SnackBar(
@@ -1542,10 +1730,11 @@ class _MainScreenState extends State<MainScreen> {
     final chatId =
         _chatIdForAd(ad);
 
-    final chatRef = FirebaseFirestore
-        .instance
-        .collection('chats')
-        .doc(chatId);
+    final chatRef =
+        FirebaseFirestore
+            .instance
+            .collection('chats')
+            .doc(chatId);
 
     final existing =
         await chatRef.get();
@@ -1563,9 +1752,11 @@ class _MainScreenState extends State<MainScreen> {
         'otherName': 'Seller',
         'lastMessage': '',
         'lastMessageTime':
-            FieldValue.serverTimestamp(),
+            FieldValue
+                .serverTimestamp(),
         'createdAt':
-            FieldValue.serverTimestamp(),
+            FieldValue
+                .serverTimestamp(),
       });
     }
 
@@ -1574,7 +1765,8 @@ class _MainScreenState extends State<MainScreen> {
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (_) => ChatScreen(
+        builder: (_) =>
+            ChatScreen(
           chatId: chatId,
           seller: 'Seller',
           adTitle: ad.title,
@@ -1630,7 +1822,12 @@ class _MainScreenState extends State<MainScreen> {
   }
 }
 
-class ChatScreen extends StatefulWidget {
+// =====================================================
+// CHAT SCREEN
+// =====================================================
+
+class ChatScreen
+    extends StatefulWidget {
   final String chatId;
   final String seller;
   final String adTitle;
@@ -1658,8 +1855,8 @@ class _ChatScreenState
       ScrollController();
 
   String get myUserId {
-    return FirebaseAuth
-            .instance.currentUser
+    return FirebaseAuth.instance
+            .currentUser
             ?.uid ??
         '';
   }
@@ -1685,7 +1882,9 @@ class _ChatScreenState
     final text =
         controller.text.trim();
 
-    if (text.isEmpty) return;
+    if (text.isEmpty) {
+      return;
+    }
 
     controller.clear();
 
@@ -1694,7 +1893,8 @@ class _ChatScreenState
         'text': text,
         'senderId': myUserId,
         'timestamp':
-            FieldValue.serverTimestamp(),
+            FieldValue
+                .serverTimestamp(),
       });
 
       await FirebaseFirestore
@@ -1705,7 +1905,8 @@ class _ChatScreenState
         {
           'lastMessage': text,
           'lastMessageTime':
-              FieldValue.serverTimestamp(),
+              FieldValue
+                  .serverTimestamp(),
         },
         SetOptions(
           merge: true,
@@ -1719,9 +1920,8 @@ class _ChatScreenState
       ScaffoldMessenger.of(context)
           .showSnackBar(
         SnackBar(
-          content: Text(
-            'Message failed: $e',
-          ),
+          content:
+              Text('Message failed: $e'),
         ),
       );
     }
@@ -1744,7 +1944,8 @@ class _ChatScreenState
               const Duration(
             milliseconds: 250,
           ),
-          curve: Curves.easeOut,
+          curve:
+              Curves.easeOut,
         );
       },
     );
@@ -1760,16 +1961,20 @@ class _ChatScreenState
           children: [
             const CircleAvatar(
               radius: 17,
-              backgroundColor: green,
+              backgroundColor:
+                  green,
               child: Icon(
                 Icons.person,
                 size: 19,
-                color: Colors.white,
+                color:
+                    Colors.white,
               ),
             ),
+
             const SizedBox(
               width: 10,
             ),
+
             Expanded(
               child: Column(
                 crossAxisAlignment:
@@ -1782,10 +1987,13 @@ class _ChatScreenState
                         const TextStyle(
                       fontSize: 17,
                       fontWeight:
-                          FontWeight.w800,
+                          FontWeight
+                              .w800,
                     ),
                   ),
-                  if (widget.adTitle
+
+                  if (widget
+                      .adTitle
                       .isNotEmpty)
                     Text(
                       widget.adTitle,
@@ -1806,6 +2014,7 @@ class _ChatScreenState
           ],
         ),
       ),
+
       body: Column(
         children: [
           Expanded(
@@ -1813,12 +2022,14 @@ class _ChatScreenState
                 QuerySnapshot<
                     Map<String,
                         dynamic>>>(
-              stream: messageCollection
-                  .orderBy(
-                    'timestamp',
-                    descending: false,
-                  )
-                  .snapshots(),
+              stream:
+                  messageCollection
+                      .orderBy(
+                'timestamp',
+                descending: false,
+              )
+                      .snapshots(),
+
               builder:
                   (context, snapshot) {
                 if (snapshot
@@ -1841,21 +2052,23 @@ class _ChatScreenState
                 }
 
                 final docs =
-                    snapshot.data?.docs ??
+                    snapshot.data
+                            ?.docs ??
                         [];
 
                 if (docs.isEmpty) {
                   return const Center(
                     child: Column(
                       mainAxisSize:
-                          MainAxisSize.min,
+                          MainAxisSize
+                              .min,
                       children: [
                         Icon(
                           Icons
                               .chat_bubble_outline,
                           size: 55,
-                          color:
-                              Colors.black26,
+                          color: Colors
+                              .black26,
                         ),
                         SizedBox(
                           height: 10,
@@ -1887,9 +2100,8 @@ class _ChatScreenState
                   controller:
                       scrollController,
                   padding:
-                      const EdgeInsets.all(
-                    16,
-                  ),
+                      const EdgeInsets
+                          .all(16),
                   itemCount:
                       docs.length,
                   itemBuilder:
@@ -1917,7 +2129,8 @@ class _ChatScreenState
                               .centerRight
                           : Alignment
                               .centerLeft,
-                      child: Container(
+                      child:
+                          Container(
                         constraints:
                             const BoxConstraints(
                           maxWidth: 300,
@@ -1947,11 +2160,13 @@ class _ChatScreenState
                           border: mine
                               ? null
                               : Border.all(
-                                  color: Colors
-                                      .black12,
+                                  color:
+                                      Colors
+                                          .black12,
                                 ),
                         ),
-                        child: Text(
+                        child:
+                            Text(
                           text,
                           style:
                               TextStyle(
@@ -1983,7 +2198,8 @@ class _ChatScreenState
               child: Row(
                 children: [
                   Expanded(
-                    child: TextField(
+                    child:
+                        TextField(
                       controller:
                           controller,
                       textInputAction:
@@ -2003,17 +2219,21 @@ class _ChatScreenState
                       ),
                     ),
                   ),
+
                   const SizedBox(
                     width: 8,
                   ),
+
                   FloatingActionButton
                       .small(
                     backgroundColor:
                         green,
                     foregroundColor:
                         Colors.white,
-                    onPressed: send,
-                    child: const Icon(
+                    onPressed:
+                        send,
+                    child:
+                        const Icon(
                       Icons.send,
                     ),
                   ),
